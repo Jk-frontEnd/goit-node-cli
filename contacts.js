@@ -35,7 +35,6 @@ async function addContact(name, email, phone) {
   fs.readFile(contactsPath, (err, data) => {
     if (err) {
       if (err.code === 'ENOENT') {
-        // If the file doesn't exist, create it with the new contact
         const newContacts = [newContact];
         fs.writeFile(contactsPath, JSON.stringify(newContacts, null, 2), (err) => {
           if (err) {
@@ -49,7 +48,6 @@ async function addContact(name, email, phone) {
       }
     } else {
       const contacts = JSON.parse(data);
-      // If the file is empty, add the new contact to the array
       if (contacts.length === 0) {
         contacts.push(newContact);
         fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), (err) => {
@@ -60,7 +58,6 @@ async function addContact(name, email, phone) {
           }
         });
       } else {
-        // If the file is not empty, check if the new contact already exists
         const existingContact = contacts.find((contact) => contact.email === email || contact.phone === phone);
         if (existingContact) {
           console.log('Contact already exists!');
