@@ -1,17 +1,15 @@
-import * as fs from 'fs';
 import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
+import { dirname } from 'path';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const contactsPath = join(__dirname, 'db', 'contacts.json');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const contactsPath = path.join(__dirname, 'db', 'contacts.json');
 
 async function listContacts() {
-  try {
-    const data = await fs.readFile(contactsPath, 'utf8');
-    return JSON.parse(data);
-  } catch (error) {
-    return [];
-  }
+  const data = await fs.readFile(contactsPath, 'utf8');
+  return JSON.parse(data);
 }
 
 async function getContactById(contactId) {
@@ -31,49 +29,15 @@ async function removeContact(contactId) {
 }
 
 async function addContact(name, email, phone) {
-  const newContact = { name, email, phone };
-  fs.readFile(contactsPath, (err, data) => {
-    if (err) {
-      if (err.code === 'ENOENT') {
-        const newContacts = [newContact];
-        fs.writeFile(contactsPath, JSON.stringify(newContacts, null, 2), (err) => {
-          if (err) {
-            console.error(err);
-          } else {
-            console.log('Contact added successfully!');
-          }
-        });
-      } else {
-        console.error(err);
-      }
-    } else {
-      const contacts = JSON.parse(data);
-      if (contacts.length === 0) {
-        contacts.push(newContact);
-        fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), (err) => {
-          if (err) {
-            console.error(err);
-          } else {
-            console.log('Contact added successfully!');
-          }
-        });
-      } else {
-        const existingContact = contacts.find((contact) => contact.email === email || contact.phone === phone);
-        if (existingContact) {
-          console.log('Contact already exists!');
-        } else {
-          contacts.push(newContact);
-          fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2), (err) => {
-            if (err) {
-              console.error(err);
-            } else {
-              console.log('Contact added successfully!');
-            }
-          });
-        }
-      }
-    }
-  });
+  const newContact = { id: generateId(), name, email, phone };
+  const contacts = await listContacts();
+  contacts.push(newContact);
+  await fs.writeFile(contactsPath, JSON.stringify(contacts, null, 2));
+  return newContact;
+}
+
+function generateId() {
+  return Math.random().toString(36).substr(2, 9);
 }
 
 export { listContacts, getContactById, removeContact, addContact };
